@@ -13,7 +13,7 @@ public class TaskDTO {
     public TaskDTO() {}
 
     // Constructor with fields
-    public TaskDTO(Long id, String title, String description, TaskStatus status) {
+    public TaskDTO(Long id, String title, String description, TaskStatus status, Long aLong) {
         this.id = id;
         this.title = title;
         this.description = description;

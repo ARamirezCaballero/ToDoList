@@ -35,8 +35,8 @@ public class Task {
         if (status == null) { // Task status cannot be null
             throw new IllegalArgumentException("Status must be provided");
         }
-        if (user == null) { // Every task must be assigned to a user
-            throw new IllegalArgumentException("User must be provided for the task");
+        if (user == null) {
+            throw new IllegalArgumentException("User id cannot be empty");
         }
 
         this.title = title;

@@ -2,6 +2,8 @@ package com.mindhub.todolist.services.implementations;
 
 import com.mindhub.todolist.dtos.TaskDTO;
 import com.mindhub.todolist.entities.Task;
+import com.mindhub.todolist.entities.UserEntity;
+import com.mindhub.todolist.repositories.UserRepository;
 import com.mindhub.todolist.repositories.TaskRepository;
 import com.mindhub.todolist.services.TaskService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +18,9 @@ class TaskServiceImpl implements TaskService {
     @Autowired
     private TaskRepository taskRepository;
 
+    @Autowired
+    private UserRepository userRepository;
+
     // Get all tasks
     @Override
     public List<TaskDTO> getAllTasks() {
@@ -24,7 +29,7 @@ class TaskServiceImpl implements TaskService {
             throw new RuntimeException("No tasks found");
         }
         return tasks.stream()
-                .map(task -> new TaskDTO(task.getId(), task.getTitle(), task.getDescription(), task.getStatus()))
+                .map(task -> new TaskDTO(task.getId(), task.getTitle(), task.getDescription(), task.getStatus(), task.getUser().getId()))
                 .collect(Collectors.toList());
     }
 
@@ -32,7 +37,7 @@ class TaskServiceImpl implements TaskService {
     @Override
     public TaskDTO getTaskById(Long id) {
         Task task = taskRepository.findById(id).orElseThrow(() -> new RuntimeException("Task with ID " + id + " not found"));
-        return new TaskDTO(task.getId(), task.getTitle(), task.getDescription(), task.getStatus());
+        return new TaskDTO(task.getId(), task.getTitle(), task.getDescription(), task.getStatus(), task.getUser().getId());
     }
 
     // Create a new task
@@ -47,10 +52,20 @@ class TaskServiceImpl implements TaskService {
         if (taskDTO.getStatus() == null) {
             throw new IllegalArgumentException("Task status must be provided");
         }
+        if (taskDTO.getUserId() == null) {
+            throw new IllegalArgumentException("User ID must be provided for the task");
+        }
 
-        Task task = new Task(taskDTO.getTitle(), taskDTO.getDescription(), taskDTO.getStatus(), null); // Set user to null for now
+        // Buscar el usuario asociado al userId
+        UserEntity user = userRepository.findById(taskDTO.getUserId())
+                .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + taskDTO.getUserId()));
+
+        // Crear la tarea con el usuario asociado
+        Task task = new Task(taskDTO.getTitle(), taskDTO.getDescription(), taskDTO.getStatus(), user);
         taskRepository.save(task);
-        return new TaskDTO(task.getId(), task.getTitle(), task.getDescription(), task.getStatus());
+
+        // Devolver el DTO de la tarea creada
+        return new TaskDTO(task.getId(), task.getTitle(), task.getDescription(), task.getStatus(), user.getId());
     }
 
     // Update an existing task
